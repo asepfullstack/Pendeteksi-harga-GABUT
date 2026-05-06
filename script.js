@@ -1,49 +1,63 @@
-// Database Produk Master
-const masterData = {
-    "8992775311615": { name: "Chocolatos", price: 2500 },
-    "8991748613655": { name: "YOU Acne Plus Serum", price: 35000 },
-    "8998103018515": { name: "Cussons Baby Powder", price: 15000 },
-    "886001026025":  { name: "Astor Wonderful", price: 12000 },
-    "8999908000000": { name: "Gudang Garam Filter", price: 24500 }
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.1.3/firebase-app.js";
+import { getDatabase, ref, push, onValue, remove } from "https://www.gstatic.com/firebasejs/9.1.3/firebase-database.js";
+
+// 1. Konfigurasi Firebase Milik AsepTamvan
+const firebaseConfig = {
+  apiKey: "AIzaSyBO1Uk8aHZxMCaq2kk3TdQ2p0YAiISbHyY",
+  authDomain: "aseptamvan-5de70.firebaseapp.com",
+  projectId: "aseptamvan-5de70",
+  storageBucket: "aseptamvan-5de70.firebasestorage.app",
+  messagingSenderId: "349456602743",
+  appId: "1:349456602743:web:3bf40266caee47c5f2d872",
+  measurementId: "G-NZ13SSBRNG"
 };
 
-const nameEl = document.getElementById('item-name');
-const priceEl = document.getElementById('item-price');
-const statusText = document.getElementById('status-text');
-const statusDot = document.getElementById('status-dot');
-const historyList = document.getElementById('history-list');
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+const dbRef = ref(db, 'scans');
 
-// 1. Load Data dari Database Lokal (LocalStorage)
-let scanHistory = JSON.parse(localStorage.getItem('sep_scan_db')) || [];
+// 2. Database Barang (Barang di Rumah Asep)
+// Tambahkan di sini jika ada barang baru
+const products = {
+    "8992775311615": { name: "Chocolatos", price: 2500 },
+    "8991748613655": { name: "Acne Plus Spot Care Serum", price: 35000 },
+    "8998103018515": { name: "Cussons Baby Powder", price: 15000 },
+    "886001026025":  { name: "Astor Wonderful Sensation", price: 12000 }
+};
 
-function updateHistoryTable() {
-    historyList.innerHTML = "";
-    scanHistory.slice().reverse().forEach(item => {
-        const row = `<tr>
-            <td>${item.time}</td>
-            <td><code>${item.code}</code></td>
-            <td>${item.name}</td>
-            <td>Rp ${item.price.toLocaleString('id-ID')}</td>
-        </tr>`;
-        historyList.innerHTML += row;
-    });
-}
+// Elements
+const nameEl = document.getElementById('name');
+const priceEl = document.getElementById('price');
+const logTable = document.getElementById('log-table');
+const statusDot = document.getElementById('dot');
 
-// 2. Simpan ke Database Lokal
-function saveToLocalDB(code, name, price) {
-    const now = new Date();
-    const timeStr = `${now.getHours()}:${now.getMinutes()}`;
+// 3. LOGIKA UNTUK LAPTOP (Monitoring Realtime)
+onValue(dbRef, (snapshot) => {
+    const data = snapshot.val();
+    logTable.innerHTML = "";
     
-    // Cek biar nggak duplikat dalam waktu berdekatan
-    const lastEntry = scanHistory[scanHistory.length - 1];
-    if (lastEntry && lastEntry.code === code) return; 
+    if (data) {
+        const list = Object.values(data).reverse();
+        
+        // Tampilkan info produk terakhir di card
+        const latest = list[0];
+        nameEl.innerText = latest.name;
+        priceEl.innerText = latest.price.toLocaleString('id-ID');
+        
+        // Isi tabel history
+        list.forEach(item => {
+            const row = `<tr>
+                <td>${item.time}</td>
+                <td><code>${item.code}</code></td>
+                <td>${item.name}</td>
+                <td>Rp ${item.price.toLocaleString('id-ID')}</td>
+            </tr>`;
+            logTable.innerHTML += row;
+        });
+    }
+});
 
-    scanHistory.push({ time: timeStr, code, name, price });
-    localStorage.setItem('sep_scan_db', JSON.stringify(scanHistory));
-    updateHistoryTable();
-}
-
-// 3. Init Scanner
+// 4. LOGIKA UNTUK HP (Scanner)
 Quagga.init({
     inputStream: {
         name: "Live", type: "LiveStream",
@@ -51,35 +65,41 @@ Quagga.init({
         constraints: { facingMode: "environment" }
     },
     decoder: { readers: ["ean_reader", "code_128_reader"] }
-}, function(err) {
-    if (err) return;
-    Quagga.start();
-    statusText.innerText = "SISTEM AKTIF";
-    statusDot.classList.add('active-dot');
+}, (err) => {
+    if (!err) {
+        Quagga.start();
+        statusDot.classList.add('online');
+        document.getElementById('status').innerText = "CONNECTED";
+    }
 });
 
-// 4. Deteksi
-Quagga.onDetected(function(result) {
+let isScanning = false;
+Quagga.onDetected((result) => {
     const code = result.codeResult.code;
     
-    if (masterData[code]) {
-        const item = masterData[code];
-        nameEl.innerText = item.name;
-        priceEl.innerText = "Rp " + item.price.toLocaleString('id-ID');
-        
-        // Simpan ke database lokal setiap ada scan sukses
-        saveToLocalDB(code, item.name, item.price);
+    if (!isScanning && products[code]) {
+        isScanning = true;
+        const item = products[code];
+        const time = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+
+        // Push data ke Firebase
+        push(dbRef, {
+            code: code,
+            name: item.name,
+            price: item.price,
+            time: time
+        });
+
+        // Delay 3 detik agar tidak scan berkali-kali
+        setTimeout(() => { isScanning = false; }, 3000);
     }
 });
 
-// Fitur Hapus History
-document.getElementById('save-manual').onclick = () => {
-    if(confirm("Hapus semua riwayat scan?")) {
-        scanHistory = [];
-        localStorage.removeItem('sep_scan_db');
-        updateHistoryTable();
+// Bersihkan Database
+document.getElementById('clear-btn').onclick = () => {
+    if(confirm("Hapus semua log history?")) {
+        remove(dbRef);
+        nameEl.innerText = "Menunggu...";
+        priceEl.innerText = "0";
     }
 };
-
-// Jalankan tabel saat start
-updateHistoryTable();
