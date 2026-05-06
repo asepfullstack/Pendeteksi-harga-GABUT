@@ -1,0 +1,62 @@
+:root {
+    --bg-dark: #0a1f3d;
+    --accent: #00f2ff;
+    --glass: rgba(10, 31, 61, 0.85);
+    --border: rgba(0, 242, 255, 0.2);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+body, html { background: #000; width: 100%; height: 100%; overflow: hidden; color: #fff; }
+
+/* Kamera Layer */
+#interactive.viewport {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1;
+}
+#interactive.viewport video, #interactive.viewport canvas {
+    width: 100%; height: 100%; object-fit: cover;
+}
+
+/* UI Wrapper */
+.ui-wrapper {
+    position: relative; z-index: 10; height: 100vh;
+    display: flex; flex-direction: column; pointer-events: none;
+}
+
+.top-nav { padding: 20px; display: flex; justify-content: space-between; pointer-events: auto; }
+.glass-pill {
+    background: var(--glass); backdrop-filter: blur(10px);
+    border: 1px solid var(--border); padding: 8px 16px;
+    border-radius: 12px; font-size: 11px; font-weight: bold; letter-spacing: 1px;
+}
+.status-active { color: var(--accent); text-shadow: 0 0 5px var(--accent); }
+
+/* Scanner UI */
+.focus-area { flex-grow: 1; display: flex; justify-content: center; align-items: center; }
+.scanner-box {
+    width: 280px; height: 180px; position: relative;
+    box-shadow: 0 0 0 2000px rgba(0, 0, 0, 0.6);
+}
+.corner { position: absolute; width: 20px; height: 20px; border: 3px solid var(--accent); }
+.tl { top: -2px; left: -2px; border-right: 0; border-bottom: 0; }
+.tr { top: -2px; right: -2px; border-left: 0; border-bottom: 0; }
+.bl { bottom: -2px; left: -2px; border-right: 0; border-top: 0; }
+.br { bottom: -2px; right: -2px; border-left: 0; border-top: 0; }
+
+.scan-line {
+    position: absolute; width: 100%; height: 2px; background: var(--accent);
+    box-shadow: 0 0 15px var(--accent); top: 50%; animation: moveLine 2s linear infinite;
+}
+@keyframes moveLine { 0%, 100% { top: 10%; } 50% { top: 90%; } }
+
+/* Result Card */
+.info-area { padding: 30px; pointer-events: auto; }
+.result-card {
+    background: var(--glass); backdrop-filter: blur(20px);
+    border: 1px solid var(--border); border-radius: 25px;
+    padding: 25px; text-align: center; max-width: 500px; margin: 0 auto;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+.label { font-size: 10px; color: #8899ac; letter-spacing: 2px; margin-bottom: 10px; display: block; }
+#item-name { font-size: 1.2rem; margin-bottom: 8px; }
+#item-price { font-size: 2.5rem; font-weight: 800; color: var(--accent); }
+.hint { font-size: 11px; color: #5c7089; margin-top: 15px; }
