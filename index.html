@@ -3,62 +3,61 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Price Scanner Dashboard</title>
+    <title>AsepTamvan Realtime Dashboard</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
 </head>
 <body>
 
-    <div class="dashboard-container">
-        <header class="main-header">
-            <div class="logo">ASEP<span>SCAN</span></div>
-            <div class="status-box">
-                <span id="status-dot"></span>
-                <span id="status-text">Menghubungkan...</span>
+    <div class="dashboard">
+        <header class="header">
+            <div class="brand">ASEP<span>TAMVAN</span></div>
+            <div class="connection">
+                <span id="dot"></span>
+                <span id="status">Syncing Firebase...</span>
             </div>
         </header>
 
-        <main class="content">
-            <div class="top-section">
-                <div class="card scanner-card">
-                    <div id="interactive" class="viewport"></div>
-                    <div class="scan-overlay">
-                        <div class="focus-bracket"></div>
-                    </div>
+        <div class="main-grid">
+            <div class="card scanner-box">
+                <div id="interactive" class="viewport"></div>
+                <div class="overlay">
+                    <div class="focus-rect"></div>
                 </div>
-
-                <div class="card result-card">
-                    <h3>Hasil Pemindaian</h3>
-                    <div class="result-content">
-                        <p class="label">Nama Produk</p>
-                        <h2 id="item-name">-</h2>
-                        <p class="label">Harga Estimasi</p>
-                        <h1 id="item-price">Rp 0</h1>
-                    </div>
-                    <button id="save-manual" class="btn-secondary">Hapus History</button>
-                </div>
+                <div class="badge">LIVE SCANNER</div>
             </div>
 
-            <div class="card history-card">
-                <h3>Riwayat Pemindaian (Database Lokal)</h3>
-                <div class="table-wrapper">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Waktu</th>
-                                <th>Barcode</th>
-                                <th>Produk</th>
-                                <th>Harga</th>
-                            </tr>
-                        </thead>
-                        <tbody id="history-list">
-                            </tbody>
-                    </table>
+            <div class="card detail-box">
+                <p class="label">Produk Terdeteksi</p>
+                <h2 id="name">Menunggu...</h2>
+                <div class="price-wrapper">
+                    <span class="curr">Rp</span>
+                    <span id="price">0</span>
                 </div>
+                <div class="divider"></div>
+                <button id="clear-btn" class="btn-secondary">Bersihkan Log</button>
             </div>
-        </main>
+        </div>
+
+        <div class="card history-box">
+            <h3>Database Monitoring (Realtime)</h3>
+            <div class="table-scroll">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Waktu</th>
+                            <th>Barcode</th>
+                            <th>Item</th>
+                            <th>Harga</th>
+                        </tr>
+                    </thead>
+                    <tbody id="log-table">
+                        </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 
-    <script src="script.js"></script>
+    <script type="module" src="script.js"></script>
 </body>
 </html>
