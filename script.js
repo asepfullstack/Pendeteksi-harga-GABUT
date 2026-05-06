@@ -1,59 +1,85 @@
+// Database Produk Master
+const masterData = {
+    "8992775311615": { name: "Chocolatos", price: 2500 },
+    "8991748613655": { name: "YOU Acne Plus Serum", price: 35000 },
+    "8998103018515": { name: "Cussons Baby Powder", price: 15000 },
+    "886001026025":  { name: "Astor Wonderful", price: 12000 },
+    "8999908000000": { name: "Gudang Garam Filter", price: 24500 }
+};
+
 const nameEl = document.getElementById('item-name');
 const priceEl = document.getElementById('item-price');
-const statusEl = document.getElementById('status');
+const statusText = document.getElementById('status-text');
+const statusDot = document.getElementById('status-dot');
+const historyList = document.getElementById('history-list');
 
-// ==========================================
-// BLOCK DAFTAR PRODUK (TAMBAH DI SINI)
-// ==========================================
-const productDatabase = {
-    "8992775311615": { name: "Chocolatos", price: 2500 },
-    "8991748613655": { name: "YOU Acne Plus Spot Care Serum", price: 35000 },
-    "8998103018515": { name: "Cussons Baby Powder", price: 15000 },
-    "886001026025":  { name: "Astor Wonderful Sensation", price: 12000 }
-    // "KODE_BARCODE": { name: "NAMA_BARANG", price: HARGA_ANGKA },
-};
-// ==========================================
+// 1. Load Data dari Database Lokal (LocalStorage)
+let scanHistory = JSON.parse(localStorage.getItem('sep_scan_db')) || [];
 
-// Inisialisasi QuaggaJS
+function updateHistoryTable() {
+    historyList.innerHTML = "";
+    scanHistory.slice().reverse().forEach(item => {
+        const row = `<tr>
+            <td>${item.time}</td>
+            <td><code>${item.code}</code></td>
+            <td>${item.name}</td>
+            <td>Rp ${item.price.toLocaleString('id-ID')}</td>
+        </tr>`;
+        historyList.innerHTML += row;
+    });
+}
+
+// 2. Simpan ke Database Lokal
+function saveToLocalDB(code, name, price) {
+    const now = new Date();
+    const timeStr = `${now.getHours()}:${now.getMinutes()}`;
+    
+    // Cek biar nggak duplikat dalam waktu berdekatan
+    const lastEntry = scanHistory[scanHistory.length - 1];
+    if (lastEntry && lastEntry.code === code) return; 
+
+    scanHistory.push({ time: timeStr, code, name, price });
+    localStorage.setItem('sep_scan_db', JSON.stringify(scanHistory));
+    updateHistoryTable();
+}
+
+// 3. Init Scanner
 Quagga.init({
     inputStream: {
-        name: "Live",
-        type: "LiveStream",
+        name: "Live", type: "LiveStream",
         target: document.querySelector('#interactive'),
-        constraints: {
-            facingMode: "environment",
-            width: { ideal: 1280 },
-            height: { ideal: 720 }
-        }
+        constraints: { facingMode: "environment" }
     },
-    decoder: {
-        readers: ["ean_reader", "ean_8_reader", "code_128_reader"]
-    },
-    locate: true
-}, function (err) {
-    if (err) {
-        console.error(err);
-        nameEl.innerText = "Kamera Bermasalah";
-        return;
-    }
+    decoder: { readers: ["ean_reader", "code_128_reader"] }
+}, function(err) {
+    if (err) return;
     Quagga.start();
+    statusText.innerText = "SISTEM AKTIF";
+    statusDot.classList.add('active-dot');
 });
 
-// Event saat barcode terdeteksi
-Quagga.onDetected(function (result) {
+// 4. Deteksi
+Quagga.onDetected(function(result) {
     const code = result.codeResult.code;
     
-    // Validasi apakah kode ada di database
-    if (productDatabase[code]) {
-        const item = productDatabase[code];
+    if (masterData[code]) {
+        const item = masterData[code];
         nameEl.innerText = item.name;
         priceEl.innerText = "Rp " + item.price.toLocaleString('id-ID');
-        statusEl.innerText = "TERDETEKSI: " + code;
-        statusEl.style.color = "#00f2ff";
-    } else {
-        nameEl.innerText = "Produk Belum Terdaftar";
-        priceEl.innerText = "Rp 0";
-        statusEl.innerText = "KODE BARU: " + code;
-        statusEl.style.color = "#ffb300";
+        
+        // Simpan ke database lokal setiap ada scan sukses
+        saveToLocalDB(code, item.name, item.price);
     }
 });
+
+// Fitur Hapus History
+document.getElementById('save-manual').onclick = () => {
+    if(confirm("Hapus semua riwayat scan?")) {
+        scanHistory = [];
+        localStorage.removeItem('sep_scan_db');
+        updateHistoryTable();
+    }
+};
+
+// Jalankan tabel saat start
+updateHistoryTable();
