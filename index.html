@@ -2,39 +2,61 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Price Scanner Pro - @Asep</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Price Scanner Dashboard</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
 </head>
 <body>
 
-    <div id="interactive" class="viewport"></div>
-
-    <div class="ui-wrapper">
-        <header class="top-nav">
-            <div class="glass-pill">TECH-SCAN v6.0</div>
-            <div id="status" class="glass-pill status-active">MENCARI BARCODE...</div>
+    <div class="dashboard-container">
+        <header class="main-header">
+            <div class="logo">ASEP<span>SCAN</span></div>
+            <div class="status-box">
+                <span id="status-dot"></span>
+                <span id="status-text">Menghubungkan...</span>
+            </div>
         </header>
 
-        <section class="focus-area">
-            <div class="scanner-box">
-                <div class="scan-line"></div>
-                <div class="corner tl"></div>
-                <div class="corner tr"></div>
-                <div class="corner bl"></div>
-                <div class="corner br"></div>
-            </div>
-        </section>
+        <main class="content">
+            <div class="top-section">
+                <div class="card scanner-card">
+                    <div id="interactive" class="viewport"></div>
+                    <div class="scan-overlay">
+                        <div class="focus-bracket"></div>
+                    </div>
+                </div>
 
-        <footer class="info-area">
-            <div class="result-card">
-                <span class="label">IDENTIFIKASI PRODUK</span>
-                <h2 id="item-name">Arahkan Kamera ke Barcode</h2>
-                <h1 id="item-price">Rp 0</h1>
-                <p class="hint">Pastikan barcode berada di dalam kotak biru</p>
+                <div class="card result-card">
+                    <h3>Hasil Pemindaian</h3>
+                    <div class="result-content">
+                        <p class="label">Nama Produk</p>
+                        <h2 id="item-name">-</h2>
+                        <p class="label">Harga Estimasi</p>
+                        <h1 id="item-price">Rp 0</h1>
+                    </div>
+                    <button id="save-manual" class="btn-secondary">Hapus History</button>
+                </div>
             </div>
-        </footer>
+
+            <div class="card history-card">
+                <h3>Riwayat Pemindaian (Database Lokal)</h3>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Waktu</th>
+                                <th>Barcode</th>
+                                <th>Produk</th>
+                                <th>Harga</th>
+                            </tr>
+                        </thead>
+                        <tbody id="history-list">
+                            </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
     </div>
 
     <script src="script.js"></script>
